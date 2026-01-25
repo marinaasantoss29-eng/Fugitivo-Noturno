@@ -336,13 +336,24 @@ public class Personagem {
         return vidas;
     }
     public void setX(int x) {
+
         this.x = x;
     }
     public void setY(int y) {
+
         this.y = y;
     }
     public void setVidas(int v) {
+
         this.vidas = v;
+    }
+
+    public int getLARGURA() {
+        return LARGURA;
+    }
+
+    public int getALTURA() {
+        return ALTURA;
     }
 
 }

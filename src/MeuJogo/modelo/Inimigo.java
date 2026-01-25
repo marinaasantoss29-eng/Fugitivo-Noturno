@@ -47,8 +47,8 @@ public class Inimigo {
             lasers.add(new Laser(
                     x + (dir == 1 ? 40 : -10),
                     y + 20,
-                    dir
-            ));
+                    dir,
+                    jogador.getY()));
 
             cooldown = TEMPO_TIRO;
         }

@@ -46,6 +46,8 @@ public class Fase extends JPanel implements ActionListener {
     private static final int DISTANCIA_MINIMA_DR0NES = 200;
 
 
+    private boolean vitoria = false;
+
     public Fase() {
         setPreferredSize(new Dimension(LARGURA, ALTURA));
         setFocusable(true);
@@ -135,7 +137,6 @@ public class Fase extends JPanel implements ActionListener {
         gerarChaoComBuracos();
 
 
-
         criarPlataforma(450, 260);
         criarPlataforma(850, 200);
         criarPlataforma(1200, 260);
@@ -172,13 +173,19 @@ public class Fase extends JPanel implements ActionListener {
         drones.add(new DroneInimigo(600, 120));
         drones.add(new DroneInimigo(2300, 130));
 
-        int xFinal = TAM_MAPA - 200;
-        int yFinal = ALTURA - ALTURA_CHAO - 80;
 
-        inimigoFinal = new InimigoFinal(
-                xFinal,
-                yFinal
-        );
+        // Cria primeiro com Y temporário
+        int xFinal = 0;
+        inimigoFinal = new InimigoFinal(xFinal, 0);
+
+        xFinal = TAM_MAPA - 200;
+
+        // posição exata em cima do chão
+        int yFinal = ALTURA - ALTURA_CHAO - 160;
+
+        inimigoFinal = new InimigoFinal(xFinal, yFinal);
+
+        inimigoFinal.setLimites(xFinal - 200, xFinal + 200);
 
     }
 
@@ -305,6 +312,7 @@ public class Fase extends JPanel implements ActionListener {
 
         if (inimigoFinal != null && inimigoFinal.isVivo()){
             inimigoFinal.draw(g2);
+            inimigoFinal.drawLasers(g2);
         }
 
 
@@ -339,6 +347,16 @@ public class Fase extends JPanel implements ActionListener {
 
         }
 
+        if (vitoria) {
+            g2.setColor(new Color(0,0,0,180));
+            g2.fillRect(0,0,LARGURA,ALTURA);
+
+            g2.setColor(Color.GREEN);
+            g2.setFont(new Font("Arial", Font.BOLD, 40));
+            g2.drawString("VOCÊ DERROTOU O CHEFÃO!", 180, 180);
+        }
+
+
     }
 
     @Override
@@ -348,7 +366,7 @@ public class Fase extends JPanel implements ActionListener {
         jogador.atualizarTiros();
 
         if(inimigoFinal != null && inimigoFinal.isVivo()){
-            inimigoFinal.update();
+            inimigoFinal.update(jogador);
         }
 
 
@@ -485,6 +503,20 @@ public class Fase extends JPanel implements ActionListener {
                     l.desativar();
                 }
             }
+        }
+        for (LaserGuiado l : inimigoFinal.getLasers()) {
+            l.update();
+
+            if (l.isAtivo() && l.getBounds().intersects(jogador.getBounds())) {
+                jogador.tomarDano();
+                l.desativar();
+            }
+        }
+
+        // 🏆 VERIFICA SE O CHEFÃO MORREU
+        if (inimigoFinal != null && !inimigoFinal.isVivo()) {
+            vitoria = true;
+            timer.stop(); // para o jogo quando vence
         }
 
         //Câmera

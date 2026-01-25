@@ -8,7 +8,7 @@ public class Laser {
     private int velocidade = 6;
     private boolean ativo = true;
 
-    public Laser(int x, int y, int direcao) {
+    public Laser(int x, int y, int direcao, int jogadorY) {
         this.x = x;
         this.y = y;
         this.velocidade *= direcao;

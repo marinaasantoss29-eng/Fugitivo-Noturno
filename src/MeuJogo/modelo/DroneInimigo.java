@@ -10,8 +10,8 @@ public class DroneInimigo {
     private int velocidade = 2;
     private int dy = 0;
 
-    private final int largura= 64;
-    private final int altura = 48;
+    private final int largura= 120;
+    private final int altura = 90;
 
     private boolean invisivel = false;
     private int tempoCamuflagem = 0;

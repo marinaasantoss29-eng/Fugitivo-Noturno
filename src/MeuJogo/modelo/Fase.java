@@ -308,7 +308,9 @@ public class Fase extends JPanel implements ActionListener {
         for(ResiduoToxico r : residuoToxicos) r.draw(g2);
         for (Moedas m : moedas) m.draw(g2);
         for(Inimigo i : inimigos){ i.desenhar(g2);}
-        for(DroneInimigo d: drones){ d.draw(g2); }
+        for(DroneInimigo d: drones){
+            d.update(jogador.getX(), jogador.getY());
+        }
 
         if (inimigoFinal != null && inimigoFinal.isVivo()){
             inimigoFinal.draw(g2);

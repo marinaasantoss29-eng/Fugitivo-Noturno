@@ -14,6 +14,11 @@ public class InimigoFinal {
     private int limiteEsq, limiteDir;
     private int vida = 5;
 
+
+    private int jogadorX;
+    private int jogadorY;
+
+
     private boolean vivo = true;
 
     private Image imagem;
@@ -74,12 +79,8 @@ public class InimigoFinal {
             dx = (dx / distancia) * velocidadeTiro;
             dy = (dy / distancia) * velocidadeTiro;
 
-            lasers.add(new LaserGuiado(
-                    x + largura / 2,
-                    y + altura / 2,
-                    jogador.getX() + jogador.getLargura() / 2,
-                    jogador.getY() + jogador.getALTURA() / 2
-            ));
+
+            lasers.add(new LaserGuiado(x + largura/2, y + altura/2, jogadorX, jogadorY));
 
 
             contadorTiro = 0;
@@ -100,9 +101,10 @@ public class InimigoFinal {
         }
     }
 
-    public Rectangle getBounds() {
+    public Rectangle getBounds(){
         return new Rectangle(x, y, largura, altura);
     }
+
 
     public void morrer() {
 

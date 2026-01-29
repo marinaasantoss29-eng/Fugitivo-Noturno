@@ -4,10 +4,13 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
+import java.util.ArrayList;
 
 public class Personagem {
 
     private int x, y;
+    private int largura = 50;
+    private int altura = 80;
     private int dx = 0, dy = 0;
     private int velocidade = 5;
 
@@ -66,6 +69,10 @@ public class Personagem {
 
     private ArrayList<Tiro> tiros = new ArrayList<>();
 
+    private boolean camuflado = false;
+    private int tempoCamuflagem = 0;
+    private final int DURACAO_CAMUFLAGEM = 180;
+
     public Personagem(int x, int y) {
         this.x = x;
         this.y = y;
@@ -75,6 +82,8 @@ public class Personagem {
 
         load();
     }
+
+
 
     private void load() {
         parado = new ImageIcon("res/parado.png").getImage();
@@ -168,9 +177,24 @@ public class Personagem {
         if(levarDano && --tempoDano <= 0){
             levarDano = false;
         }
+        if(camuflado){
+            tempoCamuflagem--;
+            velocidade = 2;
+
+            if(tempoCamuflagem <= 0){
+                camuflado = false;
+                velocidade = 5;
+            }
+        }
     }
 
     public void draw(Graphics2D g2) {
+        if(camuflado){
+            g2.setComposite(AlphaComposite.getInstance(
+                    AlphaComposite.SRC_OVER, 0.4f
+            ));
+        }
+        
         if (imagem == null) return;
 
         if(levarDano && tempoDano % 6 < 3) return;
@@ -215,6 +239,15 @@ public class Personagem {
             }
         }
     }
+    public void ativarCamuflagem(){
+        if(!camuflado){
+            camuflado = true;
+            tempoCamuflagem = DURACAO_CAMUFLAGEM;
+        }
+    }
+    public boolean estaCamuflado(){
+        return camuflado;
+    }
 
     public void desenharTiros(Graphics2D g2){
         for(Tiro t : tiros){
@@ -242,6 +275,9 @@ public class Personagem {
         }
         if (k == KeyEvent.VK_E) ativarEscudo();
         if (k == KeyEvent.VK_SPACE) iniciarCarga();
+        if (k == KeyEvent.VK_C) ativarCamuflagem();
+
+
     }
 
     public void keyReleased(KeyEvent e) {

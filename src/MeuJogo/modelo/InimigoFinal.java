@@ -17,6 +17,9 @@ public class InimigoFinal {
     private int vida = 5;
     private boolean vivo = true;
 
+    private double anguloFlutuacao = 0;
+    private int yBase;
+
     // ===== CONTROLE =====
     private boolean olhandoDireita = true;
     private int direcao = 1;
@@ -28,7 +31,9 @@ public class InimigoFinal {
     // ===== ATAQUE =====
     private ArrayList<LaserGuiado> lasers = new ArrayList<>();
     private int contadorTiro = 0;
-    private int alcanceVisao = 400;
+    private final int TEMPO_TIRO = 90;
+    private final int MAX_LASERS = 4;
+    private int alcanceVisao = 450;
 
     // ===== ANIMAÇÃO =====
     private Image imagem;
@@ -37,12 +42,17 @@ public class InimigoFinal {
 
     // ===== CHÃO =====
     private int chao;           // chão REAL da fase
-    private int ajustePe = 0;  // corrige sprite (pé transparente)
+    private int ajustePe = 0;
+
+
 
     // ===== CONSTRUTOR =====
     public InimigoFinal(int x, int chao) {
         this.x = x;
         this.chao = chao;
+
+        this.yBase = chao - altura + 20;
+        this.y = yBase;
 
         // posiciona no chão UMA VEZ
         this.y = chao - altura+ 20;
@@ -58,6 +68,10 @@ public class InimigoFinal {
 
         if (!vivo) return;
 
+        anguloFlutuacao += 0.05;
+        y = yBase + (int)(Math.sin(anguloFlutuacao) * 20);
+
+
         // ===== CENTROS =====
         int centroBossX = x + largura / 2;
         int centroJogadorX = jogador.getX() + jogador.getLargura() / 2;
@@ -72,9 +86,8 @@ public class InimigoFinal {
 
         // ===== PARADO SE NÃO VÊ =====
         if (!jogadorVisivel) {
-            imagem = parado;
-            contadorTiro++;
-            return;
+            contadorTiro = 0;
+
         }
 
         // ===== DIREÇÃO / ESPELHAMENTO =====
@@ -106,7 +119,7 @@ public class InimigoFinal {
         // ===== ATAQUE =====
 
         contadorTiro++;
-        if (contadorTiro >= 25) {
+        if (contadorTiro >= TEMPO_TIRO && lasers.size() < MAX_LASERS) {
 
             for (int i = -1; i <= 1; i++) { // cria 3 lasers
                 LaserGuiado laser = new LaserGuiado(centroBossX, centroBossY);
@@ -123,11 +136,16 @@ public class InimigoFinal {
 
                 lasers.add(laser);
             }
+            contadorTiro = 0;
         }
-
-        // Atualiza todos os lasers
-        for (LaserGuiado l : lasers) {
+        for(int i = 0; i < lasers.size(); i++){
+            LaserGuiado l = lasers.get(i);
             l.update(centroJogadorX, centroJogadorY);
+
+            if(!l.isAtivo()){
+                lasers.remove(i);
+                i--;
+            }
         }
 
     }
@@ -173,5 +191,9 @@ public class InimigoFinal {
     public void setLimites(int esq, int dir) {
         this.limiteEsquerdo = esq;
         this.limiteDireito = dir;
+    }
+
+    public void morrer() {
+        vivo = false;
     }
 }

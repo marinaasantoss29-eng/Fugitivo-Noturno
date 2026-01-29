@@ -10,14 +10,17 @@ public class LaserGuiado {
     private final double velocidadeMax = 6.0;
     private final double aceleracao = 0.18;
 
-    private final double raioVisao = 250;      // alcance
-    private final double anguloVisao = 60;     // graus (campo frontal)
+    private final double raioVisao = 450;      // alcance
+    private final double anguloVisao = 90;     // graus (campo frontal)
 
     private boolean ativo = false;
 
     // Direção que o boss está olhando (ex: direita)
     private double olharX = 1;
     private double olharY = 0;
+
+    private double pulso = 0;
+    private double rastro = 0;
 
 
 
@@ -86,6 +89,12 @@ public class LaserGuiado {
         x += dx;
         y += dy;
 
+        pulso += 0.2;
+
+        if(x < -100 || x > 5000 || y < -1-0 || y > 900){
+            ativo = false;
+        }
+
     }
 
     public void draw(Graphics g) {
@@ -93,14 +102,17 @@ public class LaserGuiado {
 
         Graphics2D g2 = (Graphics2D) g;
 
-        g2.setColor(new Color(180, 0, 255, 80));
-        g2.fillOval((int) x - 6, (int) y - 6, 20, 14);
+        int tamanho = 26;
+        int pulsoExtra = (int)(Math.sin(pulso) * 6);
 
-        g2.setColor(new Color(150, 0, 220));
-        g2.fillRect((int) x, (int) y, 8, 4);
+        g2.setColor(new Color(255, 0, 255, 60));
+        g2.fillOval((int) x - tamanho, (int) y - tamanho / 2, tamanho * 2, tamanho);
+
+        g2.setColor(new Color(150, 0, 255, 180));
+        g2.fillRect((int) x - 8, (int) y - 4, 20, 12);
 
         g2.setColor(Color.WHITE);
-        g2.fillRect((int) x + 2, (int) y + 1, 4, 2);
+        g2.fillRect((int) x - 3, (int) y - 2, 8, 6);
     }
 
     public void setDirecaoOlhar(double dx, double dy) {

@@ -3,8 +3,9 @@ package MeuJogo.modelo;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import MeuJogo.modelo.Som;
+
 
 public class Fase extends JPanel implements ActionListener {
 
@@ -18,7 +19,6 @@ public class Fase extends JPanel implements ActionListener {
     private ArrayList<Moedas> moedas;
     private ArrayList<ResiduoToxico> residuoToxicos;
     private ArrayList<Inimigo> inimigos;
-    private ArrayList<DroneInimigo> drones;
     private InimigoFinal inimigoFinal;
 
     private ArrayList<Rectangle> blocosChao;
@@ -45,6 +45,7 @@ public class Fase extends JPanel implements ActionListener {
     private static final int MAX_DRONES_ATIVOS = 2;
     private static final int DISTANCIA_MINIMA_DR0NES = 200;
 
+    private Som musicaFundo;
 
     private boolean vitoria = false;
 
@@ -54,6 +55,9 @@ public class Fase extends JPanel implements ActionListener {
         setLayout(null);
 
         ImageIcon iconOriginal = new ImageIcon("res/botaoreinicia01.png");
+
+        musicaFundo = new Som();
+        musicaFundo.tocarLoop("res/som/musica.wav");
 
         int btnLargura = 350;
         int btnAltura = 105;
@@ -81,7 +85,7 @@ public class Fase extends JPanel implements ActionListener {
         moedas = new ArrayList<>();
         residuoToxicos = new ArrayList<>();
         inimigos = new ArrayList<>();
-        drones = new ArrayList<>();
+
 
         blocosChao = new ArrayList<>();
 
@@ -93,6 +97,9 @@ public class Fase extends JPanel implements ActionListener {
 
         timer = new Timer(16, this);
         timer.start();
+    }
+    public void encerrarFase() {
+        musicaFundo.parar();
     }
 
     private void btnReiniciarJogo() {
@@ -130,7 +137,7 @@ public class Fase extends JPanel implements ActionListener {
         moedas.clear();
         residuoToxicos.clear();
         inimigos.clear();
-        drones.clear();
+
         blocosChao.clear();
 
         proximoChaoX = 0;
@@ -170,21 +177,16 @@ public class Fase extends JPanel implements ActionListener {
         inimigos.add(new Inimigo(2600, 280, 2500, 2900));
 
 
-        drones.add(new DroneInimigo(600, 120));
-        drones.add(new DroneInimigo(2300, 130));
+
 
 
         // Cria primeiro com Y temporário
-        int xFinal = 0;
-        inimigoFinal = new InimigoFinal(xFinal, 0);
+        int xFinal = TAM_MAPA - 200;
 
-        xFinal = TAM_MAPA - 200;
+        // O CHÃO REAL DO MAPA
+        int chaoFinal = ALTURA - ALTURA_CHAO;
 
-        // posição exata em cima do chão
-        int yFinal = ALTURA - ALTURA_CHAO - 160;
-
-        inimigoFinal = new InimigoFinal(xFinal, yFinal);
-
+        inimigoFinal = new InimigoFinal(xFinal, chaoFinal);
         inimigoFinal.setLimites(xFinal - 200, xFinal + 200);
 
     }
@@ -308,9 +310,6 @@ public class Fase extends JPanel implements ActionListener {
         for(ResiduoToxico r : residuoToxicos) r.draw(g2);
         for (Moedas m : moedas) m.draw(g2);
         for(Inimigo i : inimigos){ i.desenhar(g2);}
-        for(DroneInimigo d: drones){
-            d.update(jogador.getX(), jogador.getY());
-        }
 
         if (inimigoFinal != null && inimigoFinal.isVivo()){
             inimigoFinal.draw(g2);
@@ -380,9 +379,6 @@ public class Fase extends JPanel implements ActionListener {
             jogador.setX(TAM_MAPA - jogador.getLargura());
         }
 
-        for(DroneInimigo drone : drones){
-            drone.update(jogador.getX(), jogador.getY());
-        }
 
         for(int i = 0; i < jogador.getTiros().size(); i++){
 
@@ -411,6 +407,7 @@ public class Fase extends JPanel implements ActionListener {
 
         if (jogador.getVidas() <= 0){
             gameOver = true;
+            musicaFundo.parar();
             timer.stop();
 
             btnReiniciar.setBounds(
@@ -496,18 +493,9 @@ public class Fase extends JPanel implements ActionListener {
             repaint();
             return;
         }
-        for(DroneInimigo d: drones){
-            d.update(jogador.getX(), jogador.getY());
 
-            for(LaserGuiado l: d.getLasers()){
-                if(l.isAtivo() && l.getBounds().intersects(jogador.getBounds())){
-                    jogador.tomarDano();
-                    l.desativar();
-                }
-            }
-        }
         for (LaserGuiado l : inimigoFinal.getLasers()) {
-            l.update();
+            l.update(jogador.getX(), jogador.getY());
 
             if (l.isAtivo() && l.getBounds().intersects(jogador.getBounds())) {
                 jogador.tomarDano();
@@ -518,6 +506,7 @@ public class Fase extends JPanel implements ActionListener {
         // 🏆 VERIFICA SE O CHEFÃO MORREU
         if (inimigoFinal != null && !inimigoFinal.isVivo()) {
             vitoria = true;
+            musicaFundo.parar();
             timer.stop(); // para o jogo quando vence
         }
 

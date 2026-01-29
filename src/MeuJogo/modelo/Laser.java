@@ -28,6 +28,10 @@ public class Laser {
 
     public void draw(Graphics2D g2) {
         if (!ativo) return;
+
+        g2.setColor(new Color(255, 255, 0, 80));
+        g2.fillRect(x - 3, y - 3, 16, 10);
+
         g2.setColor(Color.YELLOW);
         g2.fillRect(x, y, 10, 4);
     }

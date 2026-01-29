@@ -141,11 +141,22 @@ public class Personagem {
 
         if (dy != 0) {
             imagem = pulando;
-        } else if (dx != 0) {
-            imagem = andando[0];
-        } else {
+
+        }
+        else if (dx != 0) {
+            contadorAnimacao++;
+
+            if(contadorAnimacao >= 10){
+                frame = (frame + 1) % andando.length;
+                contadorAnimacao = 0;
+            }
+            imagem = andando[frame];
+        }
+        else{
             imagem = parado;
-        } imagem = parado;
+            frame = 0;
+        }
+
 
         if (escudoAtivo && --tempoEscudo <= 0) escudoAtivo = false;
 

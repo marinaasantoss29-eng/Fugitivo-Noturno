@@ -38,8 +38,16 @@ public class Tiro {
     }
 
     public void draw(Graphics2D g2) {
-        g2.setColor(Color.RED);
+        if (!ativo) return;
+
+        g2.setColor(new Color(0, 150, 255, 80));
+        g2.fillOval(x - 4, y - 4, tamanho + 8, tamanho + 8);
+
+        g2.setColor(new Color(0, 220, 255));
         g2.fillOval(x, y, tamanho, tamanho);
+
+        g2.setColor(Color.WHITE);
+        g2.fillOval(x + tamanho / 4, y + tamanho / 4, tamanho / 2, tamanho / 2);
     }
 
     public Rectangle getBounds() {

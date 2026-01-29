@@ -6,43 +6,88 @@ import javax.swing.ImageIcon;
 
 public class InimigoFinal {
 
+    // ===== POSIÇÃO E TAMANHO =====
     private int x, y;
-    private int largura =120;
-    private int altura = 160;
+    private int largura = 340;
+    private int altura = 420;
 
+
+    // ===== STATUS =====
     private int velocidade = 2;
-    private int limiteEsq, limiteDir;
     private int vida = 5;
-
-
-    private int jogadorX;
-    private int jogadorY;
-
-
     private boolean vivo = true;
 
-    private Image imagem;
-
+    // ===== CONTROLE =====
+    private boolean olhandoDireita = true;
     private int direcao = 1;
+
+
     private int limiteEsquerdo;
     private int limiteDireito;
 
+    // ===== ATAQUE =====
     private ArrayList<LaserGuiado> lasers = new ArrayList<>();
     private int contadorTiro = 0;
+    private int alcanceVisao = 400;
+
+    // ===== ANIMAÇÃO =====
+    private Image imagem;
+    private Image parado;
 
 
-    public InimigoFinal(int x, int y) {
+    // ===== CHÃO =====
+    private int chao;           // chão REAL da fase
+    private int ajustePe = 0;  // corrige sprite (pé transparente)
+
+    // ===== CONSTRUTOR =====
+    public InimigoFinal(int x, int chao) {
         this.x = x;
-        this.y = y;
+        this.chao = chao;
 
+        // posiciona no chão UMA VEZ
+        this.y = chao - altura+ 20;
 
-        this.imagem = new ImageIcon("res/inimigoparado.png").getImage();
+        // Sprites
+        parado = new ImageIcon("res/inimigofinal0.1.png").getImage();
 
+        imagem = parado;
     }
 
+    // ===== UPDATE =====
     public void update(Personagem jogador) {
 
-        // ===== FASES POR VIDA =====
+        if (!vivo) return;
+
+        // ===== CENTROS =====
+        int centroBossX = x + largura / 2;
+        int centroJogadorX = jogador.getX() + jogador.getLargura() / 2;
+
+        int centroBossY = y + altura / 2;
+        int centroJogadorY = jogador.getY() + jogador.getALTURA() / 2;
+
+        int distancia = Math.abs(centroJogadorX - centroBossX);
+
+        // ===== DETECÇÃO =====
+        boolean jogadorVisivel = distancia <= alcanceVisao;
+
+        // ===== PARADO SE NÃO VÊ =====
+        if (!jogadorVisivel) {
+            imagem = parado;
+            contadorTiro++;
+            return;
+        }
+
+        // ===== DIREÇÃO / ESPELHAMENTO =====
+
+        if (centroJogadorX < centroBossX) {
+            direcao = -1;
+            olhandoDireita = false;
+        } else {
+            direcao = 1;
+            olhandoDireita = true;
+        }
+
+        // ===== VELOCIDADE POR VIDA =====
         if (vida >= 4) {
             velocidade = 2;
         } else if (vida >= 2) {
@@ -51,77 +96,68 @@ public class InimigoFinal {
             velocidade = 5;
         }
 
-        // ===== MOVIMENTO LADO A LADO =====
+        // ===== MOVIMENTO =====
         x += velocidade * direcao;
 
-        if (x <= limiteEsquerdo || x + largura >= limiteDireito) {
-            direcao *= -1;
-        }
+        // ===== LIMITES =====
+        if (x < limiteEsquerdo) x = limiteEsquerdo;
+        if (x + largura > limiteDireito) x = limiteDireito - largura;
 
         // ===== ATAQUE =====
-        if (contadorTiro > 90) { // tempo entre tiros
 
-            int origemX = x + largura / 2;
-            int origemY = y + altura / 2;
+        contadorTiro++;
+        if (contadorTiro >= 25) {
 
-            int alvoX = jogador.getX() + jogador.getLargura() / 2;
-            int alvoY = jogador.getY() + jogador.getALTURA() / 2;
+            for (int i = -1; i <= 1; i++) { // cria 3 lasers
+                LaserGuiado laser = new LaserGuiado(centroBossX, centroBossY);
 
-            // calcula direção
-            double dx = alvoX - origemX;
-            double dy = alvoY - origemY;
+                // Pequeno espalhamento vertical
+                laser.setDirecaoOlhar(direcao, i * 0.2);
 
-            double distancia = Math.sqrt(dx * dx + dy * dy);
+                laser.tentarAtivar(
+                        centroBossX,
+                        centroBossY,
+                        centroJogadorX,
+                        centroJogadorY + (i * 40) // espalha a mira
+                );
 
-            // normaliza e aplica velocidade
-            double velocidadeTiro = 6;
-
-            dx = (dx / distancia) * velocidadeTiro;
-            dy = (dy / distancia) * velocidadeTiro;
-
-
-            lasers.add(new LaserGuiado(x + largura/2, y + altura/2, jogadorX, jogadorY));
-
-
-            contadorTiro = 0;
+                lasers.add(laser);
+            }
         }
+
+        // Atualiza todos os lasers
+        for (LaserGuiado l : lasers) {
+            l.update(centroJogadorX, centroJogadorY);
+        }
+
     }
 
-
+    // ===== DRAW =====
     public void draw(Graphics g) {
         if (!vivo) return;
 
-        g.drawImage(imagem, x, y, largura, altura, null);
-
-    }
-    public void levarDano(){
-        vida--;
-        if(vida <= 0){
-            vivo = false;
+        if (olhandoDireita) {
+            // agora espelha quando olha pra direita
+            g.drawImage(imagem, x + largura, y, -largura, altura, null);
+        } else {
+            // sprite original (que já está olhando pra esquerda)
+            g.drawImage(imagem, x, y, largura, altura, null);
         }
+
     }
 
-    public Rectangle getBounds(){
-        return new Rectangle(x, y, largura, altura);
-    }
-
-
-    public void morrer() {
-
-        vivo = false;
+    // ===== MÉTODOS AUXILIARES =====
+    public void levarDano() {
+        vida--;
+        if (vida <= 0) vivo = false;
     }
 
     public boolean isVivo() {
-
         return vivo;
     }
 
-    public int getAltura() {
-        return altura;
-    }
-
-    public void setY(int y) {
-        this.y = y;
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, largura, altura);
     }
 
     public void drawLasers(Graphics g) {
@@ -138,5 +174,4 @@ public class InimigoFinal {
         this.limiteEsquerdo = esq;
         this.limiteDireito = dir;
     }
-
 }

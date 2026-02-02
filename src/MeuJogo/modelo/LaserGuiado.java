@@ -7,21 +7,17 @@ public class LaserGuiado {
     private double x, y;
     private double dx = 0, dy = 0;
 
-    private final double velocidadeMax = 6.0;
-    private final double aceleracao = 0.18;
+    private final double velocidadeMax = 15.0;
+    private final double aceleracao = 0.42;
+    private final double raioVisao = 600;
+    private final double anguloVisao = 120;
 
-    private final double raioVisao = 450;      // alcance
-    private final double anguloVisao = 90;     // graus (campo frontal)
+    private boolean trajetoriaDefinida = false;
 
     private boolean ativo = false;
-
-    // Direção que o boss está olhando (ex: direita)
     private double olharX = 1;
     private double olharY = 0;
-
     private double pulso = 0;
-    private double rastro = 0;
-
 
 
     public LaserGuiado(int x, int y) {
@@ -35,15 +31,13 @@ public class LaserGuiado {
         this.ativo = false;
     }
 
-    // Verifica se o jogador está NA FRENTE do boss
     private boolean jogadorNaFrente(int jogadorX, int jogadorY) {
         double vx = jogadorX - x;
         double vy = jogadorY - y;
-
         double distancia = Math.sqrt(vx * vx + vy * vy);
         if (distancia > raioVisao) return false;
 
-        // Normaliza vetor jogador
+
         vx /= distancia;
         vy /= distancia;
 
@@ -54,12 +48,23 @@ public class LaserGuiado {
 
         return dot >= limite;
     }
+    public void definirTrajetoria(int alvoX, int alvoY){
+        double dirX = alvoX - x;
+        double dirY = alvoY - y;
+        double dist = Math.sqrt(dirX * dirX + dirY * dirY);
+
+        if(dist > 0){
+            dx = (dirX / dist) * velocidadeMax;
+            dy = (dirY / dist) * velocidadeMax;
+        }
+        trajetoriaDefinida = true;
+    }
 
     private void ajustarDirecao(int alvoX, int alvoY) {
         double dirX = alvoX - x;
         double dirY = alvoY - y;
-
         double dist = Math.sqrt(dirX * dirX + dirY * dirY);
+
         if (dist == 0) return;
 
         dirX /= dist;
@@ -75,44 +80,27 @@ public class LaserGuiado {
         }
     }
 
-    // SÓ ATACA SE ESTIVER NA FRENTE
     public void update(int jogadorX, int jogadorY) {
         if (!ativo) return;
 
-        if (!jogadorNaFrente(jogadorX, jogadorY)) {
-            return; // boss não reage
+        if(!trajetoriaDefinida){
+            ajustarDirecao(jogadorX, jogadorY);
         }
 
-        ajustarDirecao(jogadorX, jogadorY);
 
-        // Movimento normal
         x += dx;
         y += dy;
 
-        pulso += 0.2;
-
-        if(x < -100 || x > 5000 || y < -1-0 || y > 900){
+        if(x < -500 || x > 6500 || y < -500 || y > 1500){
             ativo = false;
         }
-
     }
 
-    public void draw(Graphics g) {
+    public void draw(Graphics g2) {
         if (!ativo) return;
+        g2.setColor(Color. RED);
+        g2.fillRect((int ) x, (int) y, 18, 6);
 
-        Graphics2D g2 = (Graphics2D) g;
-
-        int tamanho = 26;
-        int pulsoExtra = (int)(Math.sin(pulso) * 6);
-
-        g2.setColor(new Color(255, 0, 255, 60));
-        g2.fillOval((int) x - tamanho, (int) y - tamanho / 2, tamanho * 2, tamanho);
-
-        g2.setColor(new Color(150, 0, 255, 180));
-        g2.fillRect((int) x - 8, (int) y - 4, 20, 12);
-
-        g2.setColor(Color.WHITE);
-        g2.fillRect((int) x - 3, (int) y - 2, 8, 6);
     }
 
     public void setDirecaoOlhar(double dx, double dy) {
@@ -128,11 +116,9 @@ public class LaserGuiado {
         this.x = xInicial;
         this.y = yInicial;
 
-        dx = 0;
-        dy = 0;
+        this.trajetoriaDefinida = false;
 
         if (!jogadorNaFrente(jogadorX, jogadorY)) return;
-
         ativo = true;
     }
 

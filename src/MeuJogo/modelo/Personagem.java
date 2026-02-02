@@ -347,6 +347,24 @@ public class Personagem {
             morto = true;
         }
     }
+    public void bloquearComBoss(InimigoFinal boss){
+        if(boss == null || !boss.isVivo()) return;
+
+        Rectangle futuro = new Rectangle(x + dx, y, LARGURA, ALTURA);
+        Rectangle areaBoss = boss.getBounds();
+
+        if(futuro.intersects(areaBoss)){
+            if (dx > 0 && x + LARGURA <= areaBoss.x + 20) {
+                x = areaBoss.x - LARGURA;
+            }
+
+
+            else if (dx < 0 && x >= areaBoss.x + areaBoss.width - 20) {
+                x = areaBoss.x + areaBoss.width;
+            }
+        }
+
+    }
 
     public Rectangle getPe(){
         return new Rectangle(

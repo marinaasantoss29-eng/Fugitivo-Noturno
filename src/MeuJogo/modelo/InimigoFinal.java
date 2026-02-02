@@ -37,7 +37,11 @@ public class InimigoFinal {
 
     // ===== ANIMAÇÃO =====
     private Image imagem;
-    private Image parado;
+    private boolean descendo = false;
+    private boolean emCombateNoChao = false;
+    private int yChao;
+
+    private int xFixo;
 
 
     // ===== CHÃO =====
@@ -50,107 +54,125 @@ public class InimigoFinal {
     public InimigoFinal(int x, int chao) {
         this.x = x;
         this.chao = chao;
-
-        this.yBase = chao - altura + 20;
+        this.yBase = chao - altura + 150;
         this.y = yBase;
-
-        // posiciona no chão UMA VEZ
-        this.y = chao - altura+ 20;
+        this.yChao = chao - altura + 20;
 
         // Sprites
-        parado = new ImageIcon("res/inimigofinal0.1.png").getImage();
+        imagem = new ImageIcon("res/inimigofinal0.1.png").getImage();
 
-        imagem = parado;
     }
 
     // ===== UPDATE =====
     public void update(Personagem jogador) {
-
         if (!vivo) return;
 
-        anguloFlutuacao += 0.05;
-        y = yBase + (int)(Math.sin(anguloFlutuacao) * 20);
+        int distanciaX = Math.abs(jogador.getX() - this.x);
 
+        boolean jogadorVisivel = distanciaX < 500;
 
-        // ===== CENTROS =====
         int centroBossX = x + largura / 2;
-        int centroJogadorX = jogador.getX() + jogador.getLargura() / 2;
-
         int centroBossY = y + altura / 2;
+        int centroJogadorX = jogador.getX() + jogador.getLargura() / 2;
         int centroJogadorY = jogador.getY() + jogador.getALTURA() / 2;
-
         int distancia = Math.abs(centroJogadorX - centroBossX);
 
-        // ===== DETECÇÃO =====
-        boolean jogadorVisivel = distancia <= alcanceVisao;
 
-        // ===== PARADO SE NÃO VÊ =====
-        if (!jogadorVisivel) {
-            contadorTiro = 0;
+        if (!descendo && !emCombateNoChao) {
+            anguloFlutuacao += 0.08;
+            y = yBase + (int) (Math.sin(anguloFlutuacao) * 25);
 
-        }
-
-        // ===== DIREÇÃO / ESPELHAMENTO =====
-
-        if (centroJogadorX < centroBossX) {
-            direcao = -1;
-            olhandoDireita = false;
-        } else {
-            direcao = 1;
-            olhandoDireita = true;
-        }
-
-        // ===== VELOCIDADE POR VIDA =====
-        if (vida >= 4) {
-            velocidade = 2;
-        } else if (vida >= 2) {
-            velocidade = 3;
-        } else {
-            velocidade = 5;
-        }
-
-        // ===== MOVIMENTO =====
-        x += velocidade * direcao;
-
-        // ===== LIMITES =====
-        if (x < limiteEsquerdo) x = limiteEsquerdo;
-        if (x + largura > limiteDireito) x = limiteDireito - largura;
-
-        // ===== ATAQUE =====
-
-        contadorTiro++;
-        if (contadorTiro >= TEMPO_TIRO && lasers.size() < MAX_LASERS) {
-
-            for (int i = -1; i <= 1; i++) { // cria 3 lasers
-                LaserGuiado laser = new LaserGuiado(centroBossX, centroBossY);
-
-                // Pequeno espalhamento vertical
-                laser.setDirecaoOlhar(direcao, i * 0.2);
-
-                laser.tentarAtivar(
-                        centroBossX,
-                        centroBossY,
-                        centroJogadorX,
-                        centroJogadorY + (i * 40) // espalha a mira
-                );
-
-                lasers.add(laser);
+            x += velocidade * direcao;
+            if (x < limiteEsquerdo) {
+                direcao = 1;
+                olhandoDireita = true;
+            } else if (x + largura > limiteDireito) {
+                direcao = -1;
+                olhandoDireita = false;
             }
-            contadorTiro = 0;
+
+            boolean jogadorNaFrente = (olhandoDireita && centroJogadorX > centroBossX)
+                    || (!olhandoDireita && centroJogadorX < centroBossX);
+
+            if(distancia <= alcanceVisao && jogadorNaFrente){
+                contadorTiro++;
+                if(contadorTiro == 1 || (contadorTiro >= TEMPO_TIRO && lasers.size() < MAX_LASERS)){
+                    dispararLaser(centroBossX, centroBossY, centroJogadorX,centroJogadorY);
+                    contadorTiro = 2;
+                }
+            }else {
+                contadorTiro = 0;
+            }
+        } else if (descendo) {
+            if (y < yChao) {
+                y += 15;
+            } else {
+                y = yChao;
+                descendo = false;
+                emCombateNoChao = true;
+            }
+        } else if (emCombateNoChao) {
+
+            if (vida >= 4) {
+                velocidade = 4;
+            } else if (vida >= 2) {
+                velocidade = 6;
+            } else {
+                velocidade = 9;
+            }
+            if(centroJogadorX < centroBossX) {
+                olhandoDireita = false;
+                direcao = -1;
+            } else {
+                olhandoDireita = true;
+                direcao = 1;
+            }
+
+            x += velocidade * direcao;
+            if (x < limiteEsquerdo) x = limiteEsquerdo;
+            if (x + largura > limiteDireito) x = limiteDireito - largura;
+
+            boolean jogadorNaFrente = (direcao == 1 && centroJogadorX > centroBossX || direcao == -1 && centroJogadorX < centroBossX);
+
+            if(distancia <= alcanceVisao && jogadorNaFrente){
+                contadorTiro++;
+                if (contadorTiro == 1 || (contadorTiro >= TEMPO_TIRO && lasers.size() < MAX_LASERS)) {
+                    dispararLaser(centroBossX, centroBossY, centroJogadorX, centroJogadorY);
+                    contadorTiro = 2;
+                }
+
+            }else{
+                contadorTiro = 0;
+            }
+
         }
-        for(int i = 0; i < lasers.size(); i++){
+        for (int i = 0; i < lasers.size(); i++) {
             LaserGuiado l = lasers.get(i);
             l.update(centroJogadorX, centroJogadorY);
 
-            if(!l.isAtivo()){
+            if (!l.isAtivo()) {
                 lasers.remove(i);
                 i--;
             }
         }
 
+        if (emCombateNoChao || descendo || distancia <= alcanceVisao) {
+                olhandoDireita = (centroJogadorX > centroBossX);
+        }
+
     }
 
-    // ===== DRAW =====
+    private void dispararLaser(int bx, int by, int jx, int jy) {
+        for(int i = -1; i <= 1; i++){
+            LaserGuiado laser = new LaserGuiado(bx, by);
+
+            laser.setDirecaoOlhar(direcao, i * 0.3);
+
+            laser.tentarAtivar(bx, by, jx, jy + (i * 45));
+            lasers.add(laser);
+        }
+    }
+
     public void draw(Graphics g) {
         if (!vivo) return;
 
@@ -162,6 +184,10 @@ public class InimigoFinal {
             g.drawImage(imagem, x, y, largura, altura, null);
         }
 
+    }
+
+    public void iniciarDescida(){
+        descendo = true;
     }
 
     // ===== MÉTODOS AUXILIARES =====

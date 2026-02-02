@@ -6,7 +6,8 @@ import java.util.ArrayList;
 
 public class Inimigo {
 
-    private int x, y;
+    protected int x, y;
+    protected int dx;
     private int velocidade = 2;
 
     private int limiteEsq, limiteDir;
@@ -83,4 +84,5 @@ public class Inimigo {
     public Rectangle getBounds() {
         return new Rectangle(x, y, 40, 60);
     }
+
 }

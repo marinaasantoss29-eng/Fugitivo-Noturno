@@ -16,8 +16,7 @@ public class Fase2 extends Fase{
         moedas.clear();
         inimigos.clear();
         vigias = new ArrayList<>();
-        // Note: como as variáveis na classe 'Fase' estão como 'protected',
-        // nós conseguimos acessá-las diretamente aqui.
+
 
         // 1. Mudamos o fundo para a segunda fase
         fundo = new ImageIcon("res/cenario2.png").getImage();
@@ -31,9 +30,11 @@ public class Fase2 extends Fase{
         // 4. Adicionamos inimigos específicos da Fase 2
         inimigos.add(new Inimigo(1200, 280, 1000, 1600));
         inimigos.add(new Inimigo(2500, 280, 2200, 3000));
+        inimigos.add(new InimigoEscudo(1600, 280, 1500, 2000));
 
         vigias.add(new Vigia(800, 100, 400));
         vigias.add(new Vigia(2000, 150, 250));
+
 
         // 5. Adicionamos plataformas diferentes
         criarPlataforma(900, 220);

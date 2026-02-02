@@ -433,6 +433,30 @@ public class Fase extends JPanel implements ActionListener {
         jogador.update(plataformas);
         jogador.atualizarTiros();
 
+        for (int i = 0; i < inimigos.size(); i++) {
+            Inimigo in = inimigos.get(i);
+
+            for (int j = 0; j < jogador.getTiros().size(); j++) {
+                Tiro t = jogador.getTiros().get(j);
+
+                if (t.getBounds().intersects(in.getBounds())) {
+                    if (in instanceof InimigoEscudo) {
+                        // Tenta dar dano; se retornar true (acertou costas), remove
+                        if (((InimigoEscudo) in).levarDano(t.getX())) {
+                            inimigos.remove(i);
+                            i--; // Ajusta o índice após remover para não pular o próximo
+                            break;
+                        }
+                    } else {
+                        inimigos.remove(i);
+                        i--;
+                        break;
+                    }
+                    t.setVisivel(false);
+                }
+            }
+        }
+
         // ATUALIZAÇÃO DOS VIGIAS
         for (int i = 0; i < vigias.size(); i++) {
             Vigia v = vigias.get(i);

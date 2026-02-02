@@ -65,4 +65,11 @@ public class Tiro {
     public void destruir() {
         ativo = false;
     }
+
+    public void setVisivel(boolean b) {
+    }
+
+    public int getX() {
+        return x;
+    }
 }

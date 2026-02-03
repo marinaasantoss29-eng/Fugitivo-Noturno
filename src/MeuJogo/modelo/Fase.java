@@ -35,7 +35,7 @@ public class Fase extends JPanel implements ActionListener {
 
     private boolean gameOver = false;
     private boolean vitoria = false;
-    private int faseAtual = 1;
+    protected int faseAtual = 1;
 
     private JButton btnReiniciar;
 
@@ -60,6 +60,11 @@ public class Fase extends JPanel implements ActionListener {
     private int timerTesouro = 0;
     private final int DURACAO_EXIBICAO = 120;
     private Image imgTesouroGrande;
+
+    private boolean temChave = false;
+    private boolean maquinaAtivada = false;
+    private boolean seloQuebrado = false;
+    private Image imgChave, imgMaquina, imgBotao;
 
 
     public Fase(Janela janela) {
@@ -110,6 +115,12 @@ public class Fase extends JPanel implements ActionListener {
     }
 
     private void btnReiniciarJogo() {
+
+        if(faseAtual == 1){
+            jogador = new Personagem(100, ALTURA - 40 - 80);
+        } else{
+            jogador = new Personagem(100, 200);
+        }
 
 
         if (musicaFundo != null) {
@@ -209,18 +220,26 @@ public class Fase extends JPanel implements ActionListener {
     }
 
     private void proximaFase() {
-        faseAtual++;
+        // 1. Muda o número da fase
+        faseAtual = 2;
 
-        this.faseAtual = 2;
-        this.criarCenario();
+        // 2. Para a música atual (opcional, se quiser trocar o som)
+        if (musicaFundo != null) {
+            musicaFundo.parar();
+        }
 
-        jogador.setX(100);
-        jogador.setY(ALTURA - ALTURA_CHAO - 80);
+        // 3. Reseta a câmera e a posição do jogador para o início
         cameraX = 0;
-        criarCenario();
+        jogador.setX(100);
+        // Colocamos o jogador um pouco acima do chão inicial da Fase 2
+        jogador.setY(200);
+
+        // 4. CHAMA O CENÁRIO DA FASE 2
+        // A Janela deve gerenciar qual classe criarCenario() será chamada
+        janela.irParaFase2();
+
         repaint();
     }
-
     private void criarDronesControlados() {
 
         int xInicial = 400;
@@ -367,8 +386,20 @@ public class Fase extends JPanel implements ActionListener {
         jogador.draw(g2);
         jogador.desenharTiros(g2);
 
-
         g2.translate(cameraX, 0);
+
+        if (faseAtual == 2) {
+            g2.setFont(new Font("Arial", Font.BOLD, 16));
+            g2.setColor(Color.YELLOW);
+
+            if (!temChave) {
+                g2.drawString("OBJETIVO: RECUPERE A CHAVE DO BOSS!", cameraX + 350, 50);
+            } else if (!maquinaAtivada) {
+                g2.drawString("OBJETIVO: LEVE A CHAVE ATÉ A MÁQUINA NO FINAL!", cameraX + 350, 50);
+                // Desenha um ícone de chave perto do jogador para mostrar que ele a possui
+                g2.fillRect(jogador.getX(), jogador.getY() - 20, 10, 10);
+            }
+        }
 
         // HUD
         g2.setFont(new Font("Arial", Font.BOLD, 22));
@@ -430,8 +461,14 @@ public class Fase extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
-        jogador.update(plataformas);
         jogador.atualizarTiros();
+
+        for(Plataforma p : plataformas){
+            if(p instanceof  PlataformaMovel){
+                ((PlataformaMovel) p).mexer();
+            }
+        }
+        jogador.update(plataformas);
 
         for (int i = 0; i < inimigos.size(); i++) {
             Inimigo in = inimigos.get(i);
@@ -465,6 +502,8 @@ public class Fase extends JPanel implements ActionListener {
             ArrayList<Tiro> tiros = jogador.getTiros();
             for (int j = 0; j < tiros.size(); j++) {
                 Tiro t = tiros.get(j);
+                Rectangle boundsTiro = t.getBounds();
+
                 if (t.getBounds().intersects(v.getBounds())) {
                     vigias.remove(i);
                     t.destruir();
@@ -495,6 +534,7 @@ public class Fase extends JPanel implements ActionListener {
 
         // Colisões de tiro e inimigos
         Rectangle pj = jogador.getBounds();
+
         for(int i = 0; i < jogador.getTiros().size(); i++){
             Tiro t = jogador.getTiros().get(i);
             for(int j = 0; j < inimigos.size(); j++){
@@ -578,33 +618,25 @@ public class Fase extends JPanel implements ActionListener {
         int limiteCamera = TAM_MAPA - LARGURA;
         if (cameraX > limiteCamera) cameraX = limiteCamera;
 
-
         if (bauChefao != null && bauChefao.isAtivo()) {
-            if (pj.intersects(bauChefao.getBounds())) {
-                exibindoTesouro = true;
-                timerTesouro = DURACAO_EXIBICAO;
+            if (jogador.getBounds().intersects(bauChefao.getBounds())) {
 
-                for (int i = 0; i < RECOMPENSA_BAU; i++) {
-                    jogador.adicionarMoeda();
-                    // Criamos a animação ANTES de matar o objeto bauChefao
-                    moedasAnimadas.add(new MoedasAnimadas(
-                            bauChefao.getBounds().x + 20 + (i * 10),
-                            bauChefao.getBounds().y
-                    ));
-                }
+                // 1. MATA O GATILHO IMEDIATAMENTE
+                bauChefao = null;
 
-                bauChefao = null; // Agora ele vira null com segurança
-                janela.irParaFase2();
+                // 2. PARA O SOM E O TIMER
+                if (musicaFundo != null) musicaFundo.parar();
+                timer.stop();
 
+                // 3. INVOCA A TROCA VIA SWINGUTILITIES
+                // Isso garante que a troca de tela aconteça na Thread correta do Java
+                SwingUtilities.invokeLater(() -> {
+                    janela.irParaFase2();
+                });
 
-                // Em vez de apenas exibir o tesouro, chamamos a transição
-                Timer transitionTimer = new Timer(2000, e1 -> proximaFase());
-                transitionTimer.setRepeats(false);
-                transitionTimer.start();
+                return; // Sai do método actionPerformed para não processar mais nada
             }
-
         }
-
         if(exibindoTesouro){
             timerTesouro--;
             if(timerTesouro <= 0) exibindoTesouro = false;
@@ -616,6 +648,13 @@ public class Fase extends JPanel implements ActionListener {
             if (moedasAnimadas.get(i).acabou()) {
                 moedasAnimadas.remove(i);
                 i--;
+            }
+        }
+        for(int i = 0; i < plataformas.size(); i++){
+            Plataforma p = plataformas.get(i);
+
+            if(p instanceof  PlataformaMovel){
+                ((PlataformaMovel) p).mexer();
             }
         }
 
@@ -632,5 +671,24 @@ public class Fase extends JPanel implements ActionListener {
         public void keyReleased(KeyEvent e) {
             jogador.keyReleased(e);
         }
+    }
+
+    public void restart() {
+        // 1. Reposiciona o jogador em um local seguro
+        jogador.setX(100);
+        jogador.setY(250);
+
+        // 2. Zera a velocidade de queda para ele não "nascer" caindo rápido
+        // Se a sua variável de gravidade tiver outro nome, ajuste aqui
+        jogador.setDY(0);
+
+        // 3. Torna o player visível novamente caso ele tenha morrido
+        jogador.setVisible(true);
+
+        // 4. Recria o cenário (isso chamará o criarCenario da Fase2 se você estiver nela)
+        criarCenario();
+
+        // 5. Reinicia o timer do jogo se ele estiver parado
+        timer.start();
     }
 }

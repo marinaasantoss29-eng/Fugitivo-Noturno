@@ -4,7 +4,7 @@ import java.awt.*;
 
 public class Plataforma {
 
-    private int x, y, largura, altura;
+    protected int x, y, largura, altura;
 
     private boolean movel = false;
     private int velocidade = 1;

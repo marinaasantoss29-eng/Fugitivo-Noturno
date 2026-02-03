@@ -12,7 +12,7 @@ public class Personagem {
     private int largura = 50;
     private int altura = 80;
     private int dx = 0, dy = 0;
-    private int velocidade = 5;
+    private int velocidade = 4;
 
     private Image parado, pulando, imagem;
     private Image[] andando;
@@ -119,20 +119,18 @@ public class Personagem {
         noChao = false;
 
         for (Plataforma p : plataformas) {
-
             Rectangle pb = p.getBounds();
             Rectangle pj = getBounds();
 
-
             if (pj.intersects(pb) && dy >= 0) {
 
-                if (pj.y + pj.height - dy <= pb.y) {
+                if (pj.y + pj.height - dy <= pb.y +10) {
+                    this.y = p.getY() - ALTURA;
 
-                    y = pb.y - ALTURA;
-                    dy = 0;
-                    noChao = true;
+                        dy = 0;
+                        noChao = true;
+                        pulosRestantes = MAX_PULOS;
 
-                    pulosRestantes = MAX_PULOS;
                     podePular = true;
                 }
             }
@@ -155,7 +153,7 @@ public class Personagem {
         else if (dx != 0) {
             contadorAnimacao++;
 
-            if(contadorAnimacao >= 10){
+            if(contadorAnimacao >= 8){
                 frame = (frame + 1) % andando.length;
                 contadorAnimacao = 0;
             }
@@ -186,6 +184,7 @@ public class Personagem {
                 velocidade = 5;
             }
         }
+
     }
 
     public void draw(Graphics2D g2) {
@@ -220,7 +219,7 @@ public class Personagem {
 
     public void pular() {
         if (pulosRestantes > 0 && podePular) {
-            dy = -18;
+            dy = -22;
             pulosRestantes--;
             noChao = false;
             podePular = false;
@@ -394,6 +393,7 @@ public class Personagem {
     }
 
     public boolean estaVivo(){
+
         return vivo;
     }
     public int getVidas(){
@@ -408,6 +408,7 @@ public class Personagem {
 
         this.y = y;
     }
+
     public void setVidas(int v) {
 
         this.vidas = v;
@@ -421,4 +422,9 @@ public class Personagem {
         return ALTURA;
     }
 
+    public void setDY(int i) {
+    }
+
+    public void setVisible(boolean b) {
+    }
 }

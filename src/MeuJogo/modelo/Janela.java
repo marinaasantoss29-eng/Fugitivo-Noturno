@@ -2,6 +2,7 @@ package MeuJogo.modelo;
 
 import javax.swing.*;
 
+
 public class Janela extends JFrame {
 
 
@@ -36,6 +37,7 @@ public class Janela extends JFrame {
         Fase2 fase2 = new Fase2(this);
         setContentPane(fase2);
         revalidate();
+        repaint();
         fase2.requestFocusInWindow();
     }
 

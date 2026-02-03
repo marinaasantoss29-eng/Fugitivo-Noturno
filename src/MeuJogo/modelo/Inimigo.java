@@ -18,6 +18,8 @@ public class Inimigo {
     private int cooldown = 0;
     private final int TEMPO_TIRO = 60; // frames (1 segundo)
     private Image imagem;
+    private int altura;
+    private int largura;
 
     public Inimigo(int x, int y, int limiteEsq, int limiteDir) {
         this.x = x;
@@ -68,7 +70,7 @@ public class Inimigo {
 
     public void desenhar(Graphics2D g2) {
 
-        g2.drawImage(imagem, x, y, 40, 60, null);
+        g2.drawImage(imagem, x, y, 80, 120, null);
 
         // ===== DESENHA LASERS =====
         for (Laser l : lasers) {
@@ -76,6 +78,12 @@ public class Inimigo {
         }
     }
 
+    public void setImagem(Image novaImagem) {
+        this.imagem = novaImagem;
+        // Ajusta o tamanho do "corpo" do inimigo para a nova imagem
+        this.largura = novaImagem.getWidth(null);
+        this.altura = novaImagem.getHeight(null);
+    }
 
     public ArrayList<Laser> getLasers() {
         return lasers;
@@ -85,4 +93,6 @@ public class Inimigo {
         return new Rectangle(x, y, 40, 60);
     }
 
+    protected void mexer() {
+    }
 }

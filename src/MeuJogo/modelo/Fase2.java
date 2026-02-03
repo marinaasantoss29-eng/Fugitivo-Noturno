@@ -28,7 +28,7 @@ public class Fase2 extends Fase{
         for (int x = 0; x <= 700; x += 300) {
             criarPlataformaChao(x, 350);
         }
-        
+
         //super.gerarChaoComBuracos();
 
         Random gerador = new Random();
@@ -104,7 +104,7 @@ public class Fase2 extends Fase{
         inimigoFinal = new Chefao(3700, 220);
         ((Chefao) inimigoFinal).setLimites(3400, 3950);
 
-    //  BAÚ
+        //  BAÚ
         bauChefao = new Baudinheiro(3850, 300);
 
         System.out.println("Fase 2 Carregada com Sucesso!");

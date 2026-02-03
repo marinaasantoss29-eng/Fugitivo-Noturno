@@ -57,6 +57,7 @@ public class Fase extends JPanel implements ActionListener {
     private static final int ALTURA_DRONE = 150;
 
     private Som musicaFundo;
+    protected boolean jogoGanho = false;
 
     private boolean exibindoTesouro = false;
     private int timerTesouro = 0;
@@ -173,55 +174,55 @@ public class Fase extends JPanel implements ActionListener {
         blocosChao.clear();
 
 
-            // Adicione os vigias em pontos estratégicos (x, y, raio de patrulha)
-            vigias.add(new Vigia(600, 100, 200));  // Perto da primeira plataforma
-            vigias.add(new Vigia(1500, 150, 300)); // Voando sobre um buraco
-            vigias.add(new Vigia(2800, 80, 150));  // Bem alto no cenário
+        // Adicione os vigias em pontos estratégicos (x, y, raio de patrulha)
+        vigias.add(new Vigia(600, 100, 200));  // Perto da primeira plataforma
+        vigias.add(new Vigia(1500, 150, 300)); // Voando sobre um buraco
+        vigias.add(new Vigia(2800, 80, 150));  // Bem alto no cenário
 
-            proximoChaoX = 0;
-            gerarChaoComBuracos();
+        proximoChaoX = 0;
+        gerarChaoComBuracos();
 
-            criarPlataforma(450, 260);
-            criarPlataforma(850, 200);
-            criarPlataforma(1200, 260);
+        criarPlataforma(450, 260);
+        criarPlataforma(850, 200);
+        criarPlataforma(1200, 260);
 
-            criarPlataforma(1750, 250);
-            criarPlataforma(2150, 190);
-            criarPlataforma(2550, 250);
+        criarPlataforma(1750, 250);
+        criarPlataforma(2150, 190);
+        criarPlataforma(2550, 250);
 
-            criarPlataforma(3050, 260);
-            criarPlataforma(3450, 200);
+        criarPlataforma(3050, 260);
+        criarPlataforma(3450, 200);
 
 
-            Plataforma p1 = new Plataforma(1400, 180, 160, 20, 1300, 1700, 2);
-            Plataforma p2 = new Plataforma(2900, 180, 160, 20, 2800, 3300, -2);
+        Plataforma p1 = new Plataforma(1400, 180, 160, 20, 1300, 1700, 2);
+        Plataforma p2 = new Plataforma(2900, 180, 160, 20, 2800, 3300, -2);
 
-            plataformas.add(p1);
-            plataformas.add(p2);
+        plataformas.add(p1);
+        plataformas.add(p2);
 
-            moedasEmCima(p1);
-            moedasEmCima(p2);
+        moedasEmCima(p1);
+        moedasEmCima(p2);
 
-            residuoToxicos.add(new ResiduoToxico(900, ALTURA - ALTURA_CHAO));
-            residuoToxicos.add(new ResiduoToxico(2100, ALTURA - ALTURA_CHAO));
-            residuoToxicos.add(new ResiduoToxico(3300, ALTURA - ALTURA_CHAO));
+        residuoToxicos.add(new ResiduoToxico(900, ALTURA - ALTURA_CHAO));
+        residuoToxicos.add(new ResiduoToxico(2100, ALTURA - ALTURA_CHAO));
+        residuoToxicos.add(new ResiduoToxico(3300, ALTURA - ALTURA_CHAO));
 
-            inimigos.add(new Inimigo(1000, 280, 900, 1150));
-            inimigos.add(new Inimigo(1300, 280, 1200, 1500));
-            inimigos.add(new Inimigo(2600, 110, 2500, 3000));
-            inimigos.add(new Inimigo(2100, 140, 2000, 2400));
+        inimigos.add(new Inimigo(1000, 280, 900, 1150));
+        inimigos.add(new Inimigo(1300, 280, 1200, 1500));
+        inimigos.add(new Inimigo(2600, 110, 2500, 3000));
+        inimigos.add(new Inimigo(2100, 140, 2000, 2400));
 
-            // Cria primeiro com Y temporário
-            int xFinal = 4000;
-            int chaoFinal = ALTURA - ALTURA_CHAO - 80;
+        // Cria primeiro com Y temporário
+        int xFinal = 4000;
+        int chaoFinal = ALTURA - ALTURA_CHAO - 80;
 
-            this.inimigoFinal = new InimigoFinal(xFinal, chaoFinal);
-            this.inimigoFinal.setLimites(xFinal - 300, xFinal + 300);
+        this.inimigoFinal = new InimigoFinal(xFinal, chaoFinal);
+        this.inimigoFinal.setLimites(xFinal - 300, xFinal + 300);
 
-            bauChefao = new Baudinheiro(xFinal + 200, chaoFinal - 20);
+        bauChefao = new Baudinheiro(xFinal + 200, chaoFinal - 20);
 
-            // Forçamos o fim do mapa um pouco depois do baú para criar o buraco
-            TAM_MAPA = xFinal + 400;
+        // Forçamos o fim do mapa um pouco depois do baú para criar o buraco
+        TAM_MAPA = xFinal + 400;
 
     }
 
@@ -442,9 +443,9 @@ public class Fase extends JPanel implements ActionListener {
 
             // Configura a fonte para "FIM DE JOGO"
             g2.setFont(new Font("Arial", Font.BOLD, 50));
-            g2.setColor(Color.YELLOW);
+            g2.setColor(Color.WHITE);
 
-            String textoFim = "FIM DE JOGO";
+            String textoFim = "O DESAFIO APENAS COMEÇOU!";
             FontMetrics fm = g2.getFontMetrics();
             int x = (LARGURA - fm.stringWidth(textoFim)) / 2;
             int y = (ALTURA / 2);
@@ -454,9 +455,6 @@ public class Fase extends JPanel implements ActionListener {
             // Texto secundário
             g2.setFont(new Font("Arial", Font.PLAIN, 20));
             g2.setColor(Color.WHITE);
-            String subTexto = "Obrigado por jogar!";
-            int xSub = (LARGURA - g2.getFontMetrics().stringWidth(subTexto)) / 2;
-            g2.drawString(subTexto, xSub, y + 50);
         }
         if(exibindoTesouro){
             g2.setColor(new Color(0, 0, 0, 100));
@@ -641,14 +639,14 @@ public class Fase extends JPanel implements ActionListener {
                 if (musicaFundo != null) musicaFundo.parar();
 
                 if (faseAtual == 2) {
-                    // Se for a fase 2, exibe "Fim de Jogo"
                     vitoria = true;
-                    timer.stop(); // Para o movimento de tudo
+                    timer.stop();
+                    repaint();
+                    return;
                 } else {
                     mensagemFase = "FASE CONCLUÍDA!";
                     tempoMensagem = 180;
                 }
-
 
                 SwingUtilities.invokeLater(() -> {
                     janela.irParaFase2();

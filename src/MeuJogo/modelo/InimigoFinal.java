@@ -7,7 +7,7 @@ import javax.swing.ImageIcon;
 public class InimigoFinal {
 
     // ===== POSIÇÃO E TAMANHO =====
-    private int x, y;
+    protected int x, y;
     private int largura = 340;
     private int altura = 420;
 
@@ -222,4 +222,34 @@ public class InimigoFinal {
     public void morrer() {
         vivo = false;
     }
+
+    public int getX() {
+        return x;
+    }
+    public int getY() {
+        return y;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+    public void setY(int y) {
+        this.y = y;
+    }
+    public void receberDano(int dano) {
+        if (!vivo) return;
+
+        vida -= dano;
+        System.out.println("Boss vida: " + vida);
+
+        if (vida <= 0) {
+            morrer();
+        }
+    }
+
+    public boolean estaVivo() {
+        return vivo;
+    }
+
+
 }

@@ -36,6 +36,8 @@ public class Fase extends JPanel implements ActionListener {
     private boolean gameOver = false;
     private boolean vitoria = false;
     protected int faseAtual = 1;
+    protected String mensagemFase = "";
+    protected int tempoMensagem = 0;
 
     private JButton btnReiniciar;
 
@@ -65,6 +67,8 @@ public class Fase extends JPanel implements ActionListener {
     private boolean maquinaAtivada = false;
     private boolean seloQuebrado = false;
     private Image imgChave, imgMaquina, imgBotao;
+
+    protected boolean jogadorTemChave = false;
 
 
     public Fase(Janela janela) {
@@ -203,7 +207,9 @@ public class Fase extends JPanel implements ActionListener {
             residuoToxicos.add(new ResiduoToxico(3300, ALTURA - ALTURA_CHAO));
 
             inimigos.add(new Inimigo(1000, 280, 900, 1150));
-            inimigos.add(new Inimigo(2600, 280, 2500, 2900));
+            inimigos.add(new Inimigo(1300, 280, 1200, 1500));
+            inimigos.add(new Inimigo(2600, 110, 2500, 3000));
+            inimigos.add(new Inimigo(2100, 140, 2000, 2400));
 
             // Cria primeiro com Y temporário
             int xFinal = 4000;
@@ -392,13 +398,6 @@ public class Fase extends JPanel implements ActionListener {
             g2.setFont(new Font("Arial", Font.BOLD, 16));
             g2.setColor(Color.YELLOW);
 
-            if (!temChave) {
-                g2.drawString("OBJETIVO: RECUPERE A CHAVE DO BOSS!", cameraX + 350, 50);
-            } else if (!maquinaAtivada) {
-                g2.drawString("OBJETIVO: LEVE A CHAVE ATÉ A MÁQUINA NO FINAL!", cameraX + 350, 50);
-                // Desenha um ícone de chave perto do jogador para mostrar que ele a possui
-                g2.fillRect(jogador.getX(), jogador.getY() - 20, 10, 10);
-            }
         }
 
         // HUD
@@ -406,6 +405,16 @@ public class Fase extends JPanel implements ActionListener {
         g2.setColor(Color.WHITE);
         g2.drawString("Vidas: " + jogador.getVidas(), 20, 40);
         g2.drawString("Moedas: " + jogador.getMoedas(), 20, 70);
+        if (tempoMensagem > 0) {
+            g2.setFont(new Font("Arial", Font.BOLD, 42));
+            g2.setColor(Color.YELLOW);
+
+            FontMetrics fm = g2.getFontMetrics();
+            int xMsg = (LARGURA - fm.stringWidth(mensagemFase)) / 2;
+            int yMsg = ALTURA / 2;
+
+            g2.drawString(mensagemFase, xMsg, yMsg);
+        }
 
         // ===== GAME OVER MINIMALISTA =====
         if (gameOver) {
@@ -431,16 +440,23 @@ public class Fase extends JPanel implements ActionListener {
             g2.setColor(new Color(0, 0, 0, 180));
             g2.fillRect(0, 0, LARGURA, ALTURA);
 
-            String texto = "VOCÊ VENCEU!";
+            // Configura a fonte para "FIM DE JOGO"
+            g2.setFont(new Font("Arial", Font.BOLD, 50));
+            g2.setColor(Color.YELLOW);
 
-            g2.setFont(new Font("Arial", Font.BOLD, 42));
+            String textoFim = "FIM DE JOGO";
             FontMetrics fm = g2.getFontMetrics();
+            int x = (LARGURA - fm.stringWidth(textoFim)) / 2;
+            int y = (ALTURA / 2);
 
-            int x = (LARGURA - fm.stringWidth(texto)) / 2;
-            int y = (ALTURA - fm.getHeight()) / 2 + fm.getAscent();
+            g2.drawString(textoFim, x, y);
 
+            // Texto secundário
+            g2.setFont(new Font("Arial", Font.PLAIN, 20));
             g2.setColor(Color.WHITE);
-            g2.drawString(texto, x, y);
+            String subTexto = "Obrigado por jogar!";
+            int xSub = (LARGURA - g2.getFontMetrics().stringWidth(subTexto)) / 2;
+            g2.drawString(subTexto, xSub, y + 50);
         }
         if(exibindoTesouro){
             g2.setColor(new Color(0, 0, 0, 100));
@@ -454,8 +470,6 @@ public class Fase extends JPanel implements ActionListener {
             g2.drawImage(imgTesouroGrande, xCentrado, yCentrado, larguraImg, alturaImg, null);
 
         }
-
-
     }
 
     @Override
@@ -469,37 +483,14 @@ public class Fase extends JPanel implements ActionListener {
             }
         }
         jogador.update(plataformas);
-
-        for (int i = 0; i < inimigos.size(); i++) {
-            Inimigo in = inimigos.get(i);
-
-            for (int j = 0; j < jogador.getTiros().size(); j++) {
-                Tiro t = jogador.getTiros().get(j);
-
-                if (t.getBounds().intersects(in.getBounds())) {
-                    if (in instanceof InimigoEscudo) {
-                        // Tenta dar dano; se retornar true (acertou costas), remove
-                        if (((InimigoEscudo) in).levarDano(t.getX())) {
-                            inimigos.remove(i);
-                            i--; // Ajusta o índice após remover para não pular o próximo
-                            break;
-                        }
-                    } else {
-                        inimigos.remove(i);
-                        i--;
-                        break;
-                    }
-                    t.setVisivel(false);
-                }
-            }
-        }
+        ArrayList<Tiro> tiros = jogador.getTiros();
 
         // ATUALIZAÇÃO DOS VIGIAS
         for (int i = 0; i < vigias.size(); i++) {
             Vigia v = vigias.get(i);
             v.atualizar();
 
-            ArrayList<Tiro> tiros = jogador.getTiros();
+
             for (int j = 0; j < tiros.size(); j++) {
                 Tiro t = tiros.get(j);
                 Rectangle boundsTiro = t.getBounds();
@@ -518,7 +509,6 @@ public class Fase extends JPanel implements ActionListener {
             inimigoFinal.update(jogador);
         }
 
-        // --- PROTEÇÃO 01: Verificamos se o baú existe antes de medir distância ---
         if(bauChefao != null) {
             if(inimigoFinal != null && inimigoFinal.isVivo()){
                 int distanciaJogadorBau = Math.abs(jogador.getX() - bauChefao.getBounds().x);
@@ -535,23 +525,49 @@ public class Fase extends JPanel implements ActionListener {
         // Colisões de tiro e inimigos
         Rectangle pj = jogador.getBounds();
 
-        for(int i = 0; i < jogador.getTiros().size(); i++){
+        for (int i = 0; i < jogador.getTiros().size(); i++) {
             Tiro t = jogador.getTiros().get(i);
-            for(int j = 0; j < inimigos.size(); j++){
-                if(t.getBounds().intersects(inimigos.get(j).getBounds())){
-                    inimigos.remove(j);
+
+            if (!t.ativo()) continue;
+
+            boolean tiroDestruido = false;
+
+            //  TIRO VS INIMIGOS NORMAIS
+            for (int j = 0; j < inimigos.size(); j++) {
+                Inimigo in = inimigos.get(j);
+
+                if (t.getBounds().intersects(in.getBounds())) {
+
+                    boolean morreu = true;
+
+                    if (in instanceof InimigoEscudo) {
+                        morreu = ((InimigoEscudo) in).levarDano(t.getDano());
+                    }
+
+                    if (morreu) {
+                        inimigos.remove(j);
+                    }
+
                     t.destruir();
+                    tiroDestruido = true;
                     break;
                 }
             }
-            if(inimigoFinal != null && inimigoFinal.isVivo() && t.getBounds().intersects(inimigoFinal.getBounds())){
-                inimigoFinal.levarDano();
-                t.destruir();
+
+            // TIRO VS CHEFÃO (só se não bateu em outro)
+            if (!tiroDestruido && inimigoFinal != null && inimigoFinal.isVivo()) {
+                if (t.getBounds().intersects(inimigoFinal.getBounds())) {
+                    inimigoFinal.receberDano(t.getDano());
+                    t.destruir();
+                }
             }
         }
 
         for (Plataforma p : plataformas) p.atualizar();
         for (Moedas m : moedas) m.update();
+        for (Plataforma p : plataformas) {
+            p.atualizar();
+        }
 
         for(ResiduoToxico r : residuoToxicos){
             if(r.Ativo() && pj.intersects(r.getBounds())){
@@ -621,20 +637,24 @@ public class Fase extends JPanel implements ActionListener {
         if (bauChefao != null && bauChefao.isAtivo()) {
             if (jogador.getBounds().intersects(bauChefao.getBounds())) {
 
-                // 1. MATA O GATILHO IMEDIATAMENTE
                 bauChefao = null;
-
-                // 2. PARA O SOM E O TIMER
                 if (musicaFundo != null) musicaFundo.parar();
-                timer.stop();
 
-                // 3. INVOCA A TROCA VIA SWINGUTILITIES
-                // Isso garante que a troca de tela aconteça na Thread correta do Java
+                if (faseAtual == 2) {
+                    // Se for a fase 2, exibe "Fim de Jogo"
+                    vitoria = true;
+                    timer.stop(); // Para o movimento de tudo
+                } else {
+                    mensagemFase = "FASE CONCLUÍDA!";
+                    tempoMensagem = 180;
+                }
+
+
                 SwingUtilities.invokeLater(() -> {
                     janela.irParaFase2();
                 });
 
-                return; // Sai do método actionPerformed para não processar mais nada
+                return;
             }
         }
         if(exibindoTesouro){
@@ -655,6 +675,16 @@ public class Fase extends JPanel implements ActionListener {
 
             if(p instanceof  PlataformaMovel){
                 ((PlataformaMovel) p).mexer();
+            }
+        }
+        if (tempoMensagem > 0) {
+            tempoMensagem--;
+
+            // Quando o tempo acabar → vai pra próxima fase
+            if (tempoMensagem == 0) {
+                SwingUtilities.invokeLater(() -> {
+                    janela.irParaFase3(); // ou Fase 3, se for sua próxima
+                });
             }
         }
 

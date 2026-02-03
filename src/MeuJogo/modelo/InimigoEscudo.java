@@ -8,7 +8,7 @@ public class InimigoEscudo extends Inimigo {
         super(x, y, limiteInicial, limiteFinal);
     }
 
-    // Método para verificar se o tiro atingiu o escudo ou as costas
+
     public boolean levarDano(int tiroX) {
         // Se o inimigo está olhando para a esquerda e o tiro vem da esquerda: BLOQUEIA
         // Se o inimigo está olhando para a direita e o tiro vem da direita: BLOQUEIA

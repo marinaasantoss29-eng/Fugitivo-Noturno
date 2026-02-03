@@ -27,7 +27,7 @@ public class Moedas {
 
     public void update(){
         if(plataforma != null && !coletada){
-            x += plataforma.getDeltax();
+            x += plataforma.getDeltaX();
         }
     }
 

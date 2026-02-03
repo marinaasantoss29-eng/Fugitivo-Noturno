@@ -67,6 +67,10 @@ public class Tiro {
     }
 
     public void setVisivel(boolean b) {
+        this.ativo = b;
+    }
+    public boolean isVisivel(){
+        return ativo;
     }
 
     public int getX() {

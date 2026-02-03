@@ -40,9 +40,13 @@ public class Janela extends JFrame {
         repaint();
         fase2.requestFocusInWindow();
     }
+    
 
     public static void main(String[] args){
         new Janela();
+    }
+
+    public void irParaFase3() {
     }
 }
 

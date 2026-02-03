@@ -6,12 +6,20 @@ public class Plataforma {
 
     protected int x, y, largura, altura;
 
-    private boolean movel = false;
-    private int velocidade = 1;
+    private int deltaX = 0;
+    private int deltaY = 0;
+
+    // Movimento horizontal
+    private boolean movelHorizontal = false;
+    private int velocidadeX = 0;
     private int limiteEsq, limiteDir;
 
-    private int deltaX = 0;
+    // Movimento vertical
+    private boolean movelVertical = false;
+    private int velocidadeY = 0;
+    private int limiteCima, limiteBaixo;
 
+    // ================== PLATAFORMA PARADA (ESSA QUE ESTAVA FALTANDO) ==================
     public Plataforma(int x, int y, int largura, int altura) {
         this.x = x;
         this.y = y;
@@ -19,68 +27,74 @@ public class Plataforma {
         this.altura = altura;
     }
 
-    public Plataforma(int x, int y, int largura, int altura, int limiteEsq, int limiteDir, int velocidade){
-        this.x = x;
-        this.y = y;
-        this.largura = largura;
-        this.altura = altura;
+    // ================== PLATAFORMA QUE ANDA PRO LADO ==================
+    public Plataforma(int x, int y, int largura, int altura,
+                      int limiteEsq, int limiteDir, int velocidadeX) {
+        this(x, y, largura, altura);
+        this.movelHorizontal = true;
         this.limiteEsq = limiteEsq;
         this.limiteDir = limiteDir;
-        this.velocidade = velocidade;
-        this.movel = true;
+        this.velocidadeX = velocidadeX;
     }
-    private int deltax;
 
-    public void atualizar(){
-        deltax = 0;
+    // ================== PLATAFORMA QUE SOBE E DESCE ==================
+    public Plataforma(int x, int y, int largura, int altura,
+                      int limiteCima, int limiteBaixo, int velocidadeY, boolean vertical) {
+        this(x, y, largura, altura);
+        this.movelVertical = true;
+        this.limiteCima = limiteCima;
+        this.limiteBaixo = limiteBaixo;
+        this.velocidadeY = velocidadeY;
+    }
 
-        if(movel){
-            x += velocidade;
+    // ================== ATUALIZA MOVIMENTO ==================
+    public void atualizar() {
+        deltaX = 0;
+        deltaY = 0;
 
-            if (x <= limiteEsq || x + largura >= limiteDir){
-                velocidade *= -1;
+        // Movimento horizontal
+        if (movelHorizontal) {
+            x += velocidadeX;
+            deltaX = velocidadeX;
+
+            if (x <= limiteEsq || x + largura >= limiteDir) {
+                velocidadeX *= -1;
+            }
+        }
+
+        // Movimento vertical
+        if (movelVertical) {
+            y += velocidadeY;
+            deltaY = velocidadeY;
+
+            if (y <= limiteCima || y + altura >= limiteBaixo) {
+                velocidadeY *= -1;
             }
         }
     }
 
-    public int getDeltax(){
-        return deltaX;
-    }
-    public void desenhar(Graphics2D g2){
-        g2.setColor(Color.DARK_GRAY);
-        g2.fillRect(x, y, largura, altura);
-    }
-
-    public Rectangle getBounds() {
-        return new Rectangle(x, y, largura, altura);
-    }
-
+    // ================== DESENHO ==================
     public void draw(Graphics2D g2) {
         g2.setColor(new Color(10, 20, 60));
         g2.fillRect(x, y, largura, altura);
     }
 
-    public int getX() {
-        return x;
-    }
-    public int getY() {
-
-        return y;
-    }
-    public int getLargura() {
-
-        return largura;
-    }
-    public int getAltura() {
-
-        return altura;
+    // ================== COLISÃO ==================
+    public Rectangle getBounds() {
+        return new Rectangle(x, y, largura, altura);
     }
 
-    public void setX(int x) {
+    // ================== GETTERS ==================
+    public int getX() { return x; }
+    public int getY() { return y; }
+    public int getLargura() { return largura; }
+    public int getAltura() { return altura; }
 
-        this.x = x;
+    public int getDeltaX() {
+        return deltaX;
     }
-    public void setY(int y) {
-        this.y = y;
+
+    public int getDeltaY() {
+        return deltaY;
     }
 }
